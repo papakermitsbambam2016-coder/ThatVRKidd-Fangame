@@ -11,6 +11,7 @@ permissions:
 
 env:
   GODOT_VERSION: "4.3"
+  OPENXR_VENDORS_VERSION: "3.0.1-stable"
 
 jobs:
   build-quest-apk:
@@ -30,178 +31,31 @@ jobs:
         run: |
           mkdir -p ~/.local/share/godot/export_templates
           mkdir -p ~/.config
-
           mv /root/.config/godot ~/.config/godot
-
           mv /root/.local/share/godot/export_templates/${GODOT_VERSION}.stable \
              ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
 
       - name: Install workflow tools
         run: |
           apt-get update
+          apt-get install -y --no-install-recommends curl ca-certificates unzip
 
-          apt-get install -y --no-install-recommends \
-            python3 \
-            ca-certificates \
-            unzip
-
-      - name: Download compatible OpenXR Vendors plugin
+      - name: Install Godot 4.3 OpenXR Vendors plugin
         run: |
-          python3 - <<'PY'
-          import json
-          import urllib.parse
-          import urllib.request
-          import zipfile
-
-          headers = {
-              "User-Agent": "Mozilla/5.0 ThatVRKidd-GitHub-Actions",
-              "Accept": "application/json"
-          }
-
-          query = urllib.parse.urlencode({
-              "filter": "Godot OpenXR Vendors",
-              "godot_version": "4.3",
-              "max_results": "20"
-          })
-
-          search_url = (
-              "https://godotengine.org/asset-library/api/asset?"
-              + query
-          )
-
-          search_request = urllib.request.Request(
-              search_url,
-              headers=headers
-          )
-
-          with urllib.request.urlopen(search_request) as response:
-              search_data = json.load(response)
-
-          assets = search_data.get("result", [])
-
-          matches = [
-              asset for asset in assets
-              if "openxr vendors" in asset.get("title", "").lower()
-          ]
-
-          if not matches:
-              raise RuntimeError(
-                  "Compatible OpenXR Vendors plugin was not found"
-              )
-
-          selected_search_result = matches[0]
-          asset_id = selected_search_result["asset_id"]
-
-          details_url = (
-              "https://godotengine.org/asset-library/api/asset/"
-              + str(asset_id)
-          )
-
-          details_request = urllib.request.Request(
-              details_url,
-              headers=headers
-          )
-
-          with urllib.request.urlopen(details_request) as response:
-              selected_asset = json.load(response)
-
-          download_url = selected_asset.get("download_url")
-
-          if not download_url:
-              raise RuntimeError(
-                  "OpenXR plugin record has no download URL"
-              )
-
-          download_request = urllib.request.Request(
-              download_url,
-              headers={
-                  "User-Agent": "Mozilla/5.0",
-                  "Accept": "application/octet-stream"
-              }
-          )
-
-          with urllib.request.urlopen(download_request) as response:
-              plugin_data = response.read()
-
-          with open("/tmp/openxr-vendors.zip", "wb") as plugin_file:
-              plugin_file.write(plugin_data)
-
-          with zipfile.ZipFile(
-              "/tmp/openxr-vendors.zip",
-              "r"
-          ) as archive:
-              archive.extractall("/tmp/openxr-vendors-extracted")
-
-          print(
-              "Installed:",
-              selected_asset.get(
-                  "title",
-                  selected_search_result.get(
-                      "title",
-                      "OpenXR Vendors"
-                  )
-              )
-          )
-
-          print(
-              "Version:",
-              selected_asset.get(
-                  "version",
-                  selected_search_result.get(
-                      "version",
-                      "unknown"
-                  )
-              )
-          )
-          PY
-
-      - name: Locate and install OpenXR plugin files
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          import shutil
-
-          target = Path("addons/godotopenxrvendors")
-          extracted_root = Path("/tmp/openxr-vendors-extracted")
-
-          candidates = [
-              path
-              for path in extracted_root.rglob("godotopenxrvendors")
-              if path.is_dir()
-          ]
-
-          if not target.is_dir():
-
-              if not candidates:
-                  print("Extracted directories:")
-                  for path in Path(".").iterdir():
-                      print(path)
-                  raise RuntimeError(
-                      "godotopenxrvendors directory was not found"
-                  )
-
-              source = candidates[0]
-              target.parent.mkdir(parents=True, exist_ok=True)
-              shutil.copytree(source, target, dirs_exist_ok=True)
-              print("Moved plugin from:", source)
-
-          print("Plugin installed at:", target)
-          PY
-
+          curl --fail --location \
+            "https://github.com/GodotVR/godot_openxr_vendors/releases/download/${OPENXR_VENDORS_VERSION}/godotopenxrvendorsaddon.zip" \
+            --output /tmp/openxr-vendors.zip
+          unzip -q /tmp/openxr-vendors.zip -d .
           test -d addons/godotopenxrvendors
           find addons/godotopenxrvendors -maxdepth 2 -type f | head -30
 
       - name: Import Godot project
         run: |
-          godot --headless \
-            --path . \
-            --editor \
-            --quit
+          godot --headless --path . --editor --quit
 
       - name: Build Quest APK
         run: |
           mkdir -p build
-
           godot --headless \
             --path . \
             --verbose \
