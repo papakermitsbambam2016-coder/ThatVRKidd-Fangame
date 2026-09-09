@@ -64,13 +64,12 @@ jobs:
 
       - name: Install Android Gradle template
         run: |
-          godot --headless \
-            --path . \
-            --editor \
-            --install-android-build-template \
-            --quit || true
+          ANDROID_SOURCE="$(find ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable -type f -name android_source.zip | head -n 1)"
+          test -n "$ANDROID_SOURCE"
 
-          test -d android/build
+          mkdir -p android/build
+          unzip -q "$ANDROID_SOURCE" -d android/build
+
           test -f android/build/build.gradle
           find android/build -maxdepth 2 -type f | head -30
 
