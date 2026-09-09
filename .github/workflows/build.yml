@@ -30,23 +30,32 @@ jobs:
         run: |
           mkdir -p ~/.local/share/godot/export_templates
           mkdir -p ~/.config
+
           mv /root/.config/godot ~/.config/godot
+
           mv /root/.local/share/godot/export_templates/${GODOT_VERSION}.stable \
              ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
 
-      - name: Import Godot project
+      - name: Import project
         run: |
           godot --headless --path . --editor --quit
 
-      - name: Create build folder
-        run: |
-          mkdir -p build
-
-      - name: Build Quest APK
+      - name: Install Android Gradle template
         run: |
           godot --headless \
             --path . \
+            --install-android-build-template \
+            --editor \
+            --quit
+
+      - name: Build Quest APK
+        run: |
+          mkdir -p build
+
+          godot --headless \
+            --path . \
             --verbose \
+            --install-android-build-template \
             --export-debug "Android" \
             build/ThatVRKidd-Fangame.apk
 
