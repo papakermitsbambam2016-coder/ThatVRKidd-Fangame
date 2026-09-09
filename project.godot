@@ -1,43 +1,22 @@
-; ThatVRKidd Fangame
-; Base Godot/OpenXR project configuration
-
 config_version=5
 
 [application]
-
 config/name="ThatVRKidd Fangame"
 run/main_scene="res://Scenes/Main.tscn"
 config/features=PackedStringArray("4.3", "Mobile")
 
 [display]
-
 window/size/viewport_width=1440
 window/size/viewport_height=1584
 window/stretch/mode="canvas_items"
 
 [rendering]
-
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
 textures/default_filters/use_nearest_mipmap_filter=false
 environment/defaults/default_clear_color=Color(0.06, 0.08, 0.12, 1)
 
 [xr]
-
 openxr/enabled=true
 shaders/enabled=true
 
-[input]
-
-menu_toggle={
-"deadzone": 0.5,
-"events": []
-}
-fly={
-"deadzone": 0.5,
-"events": []
-}
-platforms={
-"deadzone": 0.5,
-"events": []
-}
