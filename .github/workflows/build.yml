@@ -73,6 +73,25 @@ jobs:
           test -f android/build/build.gradle
           find android/build -maxdepth 2 -type f | head -30
 
+      - name: Create Android debug keystore
+        run: |
+          keytool -genkeypair \
+            -keystore /tmp/thatvrkidd-debug.keystore \
+            -storepass android \
+            -alias androiddebugkey \
+            -keypass android \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -dname "CN=Android Debug,O=ThatVRKidd,C=US"
+
+          sed -i '/package\/signed=true/a\
+keystore/debug="/tmp/thatvrkidd-debug.keystore"\
+keystore/debug_user="androiddebugkey"\
+keystore/debug_password="android"' export_presets.cfg
+
+          test -f /tmp/thatvrkidd-debug.keystore
+
       - name: Build Quest APK
         run: |
           mkdir -p build
