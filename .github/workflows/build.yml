@@ -40,6 +40,13 @@ jobs:
           apt-get update
           apt-get install -y --no-install-recommends curl ca-certificates unzip
 
+      - name: Install Android SDK 34
+        run: |
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager "platforms;android-34" "build-tools;34.0.0"
+          test -d "${ANDROID_SDK_ROOT:-/opt/android-sdk-linux}/platforms/android-34" || \
+            test -d "${ANDROID_HOME}/platforms/android-34"
+
       - name: Install Godot 4.3 OpenXR Vendors plugin
         run: |
           curl --fail --location \
