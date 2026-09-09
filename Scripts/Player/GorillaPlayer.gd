@@ -37,10 +37,10 @@ func _physics_process(delta: float) -> void:
 	previous_right_position = get_virtual_hand_position(right_controller)
 
 func update_arm_locomotion(delta: float) -> void:
-	var left_position := get_virtual_hand_position(left_controller)
-	var right_position := get_virtual_hand_position(right_controller)
-	var left_hit := check_hand_movement(previous_left_position, left_position)
-	var right_hit := check_hand_movement(previous_right_position, right_position)
+	var left_position: Vector3 = get_virtual_hand_position(left_controller)
+	var right_position: Vector3 = get_virtual_hand_position(right_controller)
+	var left_hit: Dictionary = check_hand_movement(previous_left_position, left_position)
+	var right_hit: Dictionary = check_hand_movement(previous_right_position, right_position)
 	var total_push := Vector3.ZERO
 	var touching_hands := 0
 	if not left_hit.is_empty():
@@ -58,15 +58,15 @@ func update_arm_locomotion(delta: float) -> void:
 
 func update_flying(delta: float) -> void:
 	if right_controller.is_button_pressed("primary_click"):
-		var target := -right_controller.global_basis.z * fly_speed
-		velocity = velocity.lerp(target, min(10.0 * delta, 1.0))
+		var target: Vector3 = -right_controller.global_basis.z * fly_speed
+		velocity = velocity.lerp(target, minf(10.0 * delta, 1.0))
 	else:
 		velocity.y -= gravity * 0.25 * delta
-		velocity = velocity.lerp(Vector3.ZERO, min(2.0 * delta, 1.0))
+		velocity = velocity.lerp(Vector3.ZERO, minf(2.0 * delta, 1.0))
 	velocity = velocity.limit_length(fly_speed)
 
 func get_virtual_hand_position(controller: XRController3D) -> Vector3:
-	var real_position := controller.global_position
+	var real_position: Vector3 = controller.global_position
 	if not long_arms_enabled:
 		return real_position
 	return headset.global_position + (real_position - headset.global_position) * arm_multiplier
@@ -87,17 +87,17 @@ func calculate_push(hit: Dictionary, current_hand_position: Vector3) -> Vector3:
 
 func update_body_collider() -> void:
 	var body_collider: CollisionShape3D = $BodyCollider
-	var capsule := body_collider.shape as CapsuleShape3D
+	var capsule: CapsuleShape3D = body_collider.shape as CapsuleShape3D
 	if capsule == null:
 		return
-	var local_head := to_local(headset.global_position)
-	var player_height := clamp(local_head.y, 0.8, 2.4)
+	var local_head: Vector3 = to_local(headset.global_position)
+	var player_height: float = clampf(local_head.y, 0.8, 2.4)
 	capsule.height = player_height
 	body_collider.position = Vector3(local_head.x, player_height * 0.5, local_head.z)
 
 func set_client_settings(long_arms: bool, new_arm_multiplier: float, fly: bool, platforms: bool) -> void:
 	long_arms_enabled = long_arms
-	arm_multiplier = clamp(new_arm_multiplier, 1.0, 3.0)
+	arm_multiplier = clampf(new_arm_multiplier, 1.0, 3.0)
 	fly_enabled = fly
 	platforms_enabled = platforms
 	if not platforms_enabled:
@@ -148,4 +148,3 @@ func remove_platforms() -> void:
 		right_platform.queue_free()
 	left_platform = null
 	right_platform = null
-
