@@ -1,7 +1,5 @@
 extends Node3D
 
-@onready var xr_origin: XROrigin3D = $XROrigin3D
-
 
 func _ready() -> void:
 	start_openxr()
@@ -21,4 +19,5 @@ func start_openxr() -> void:
 
 	get_viewport().use_xr = true
 	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
+
 	print("ThatVRKidd: OpenXR initialized successfully.")
