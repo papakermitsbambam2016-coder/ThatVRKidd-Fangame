@@ -1,0 +1,57 @@
+name: Build ThatVRKidd Quest APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  build-quest-apk:
+    name: Build Quest APK
+    runs-on: ubuntu-latest
+
+    container:
+      image: barichello/godot-ci:4.3
+
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+
+      - name: Install Godot export templates
+        run: |
+          mkdir -p /root/.local/share/godot/export_templates
+          mv /root/.local/share/godot/templates/4.3.stable \
+             /root/.local/share/godot/export_templates/4.3.stable
+
+      - name: Import Godot project
+        run: |
+          godot --headless --path . --editor --quit
+
+      - name: Create build folder
+        run: |
+          mkdir -p build
+
+      - name: Build Quest APK
+        run: |
+          godot --headless \
+            --path . \
+            --verbose \
+            --export-debug "Android" \
+            build/ThatVRKidd-Fangame.apk
+
+      - name: Verify APK
+        run: |
+          test -f build/ThatVRKidd-Fangame.apk
+          ls -lh build/ThatVRKidd-Fangame.apk
+
+      - name: Upload Quest APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: ThatVRKidd-Fangame-Quest
+          path: build/ThatVRKidd-Fangame.apk
+          if-no-files-found: error
+          retention-days: 30
