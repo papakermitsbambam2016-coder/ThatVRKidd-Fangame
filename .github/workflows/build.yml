@@ -62,13 +62,21 @@ jobs:
         run: |
           godot --headless --path . --editor --quit
 
+      - name: Install Android Gradle template
+        run: |
+          godot --headless \
+            --path . \
+            --install-android-build-template
+
+          test -d android/build
+          find android/build -maxdepth 2 -type f | head -30
+
       - name: Build Quest APK
         run: |
           mkdir -p build
           godot --headless \
             --path . \
             --verbose \
-            --install-android-build-template \
             --export-debug "Android" \
             build/ThatVRKidd-Fangame.apk
 
