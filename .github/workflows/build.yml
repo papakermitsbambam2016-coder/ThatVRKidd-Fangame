@@ -66,7 +66,8 @@ jobs:
         run: |
           godot --headless \
             --path . \
-            --install-android-build-template
+            --install-android-build-template \
+            --quit
 
           test -d android/build
           find android/build -maxdepth 2 -type f | head -30
