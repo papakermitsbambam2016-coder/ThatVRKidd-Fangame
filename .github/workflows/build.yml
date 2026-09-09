@@ -130,7 +130,7 @@ jobs:
               "/tmp/openxr-vendors.zip",
               "r"
           ) as archive:
-              archive.extractall(".")
+              archive.extractall("/tmp/openxr-vendors-extracted")
 
           print(
               "Installed:",
@@ -162,13 +162,15 @@ jobs:
           import shutil
 
           target = Path("addons/godotopenxrvendors")
+          extracted_root = Path("/tmp/openxr-vendors-extracted")
+
+          candidates = [
+              path
+              for path in extracted_root.rglob("godotopenxrvendors")
+              if path.is_dir()
+          ]
 
           if not target.is_dir():
-              candidates = [
-                  path
-                  for path in Path(".").rglob("godotopenxrvendors")
-                  if path.is_dir() and path != target
-              ]
 
               if not candidates:
                   print("Extracted directories:")
