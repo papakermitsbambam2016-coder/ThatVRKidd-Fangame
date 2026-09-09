@@ -53,31 +53,31 @@ jobs:
           import urllib.request
           import zipfile
 
+          headers = {
+              "User-Agent": "Mozilla/5.0 ThatVRKidd-GitHub-Actions",
+              "Accept": "application/json"
+          }
+
           query = urllib.parse.urlencode({
               "filter": "Godot OpenXR Vendors",
               "godot_version": "4.3",
               "max_results": "20"
           })
 
-          api_url = (
+          search_url = (
               "https://godotengine.org/asset-library/api/asset?"
               + query
           )
 
-          headers = {
-              "User-Agent": "Mozilla/5.0 ThatVRKidd-GitHub-Actions",
-              "Accept": "application/json"
-          }
-
-          api_request = urllib.request.Request(
-              api_url,
+          search_request = urllib.request.Request(
+              search_url,
               headers=headers
           )
 
-          with urllib.request.urlopen(api_request) as response:
-              data = json.load(response)
+          with urllib.request.urlopen(search_request) as response:
+              search_data = json.load(response)
 
-          assets = data.get("result", [])
+          assets = search_data.get("result", [])
 
           matches = [
               asset for asset in assets
@@ -89,8 +89,28 @@ jobs:
                   "Compatible OpenXR Vendors plugin was not found"
               )
 
-          selected_asset = matches[0]
-          download_url = selected_asset["download_url"]
+          selected_search_result = matches[0]
+          asset_id = selected_search_result["asset_id"]
+
+          details_url = (
+              "https://godotengine.org/asset-library/api/asset/"
+              + str(asset_id)
+          )
+
+          details_request = urllib.request.Request(
+              details_url,
+              headers=headers
+          )
+
+          with urllib.request.urlopen(details_request) as response:
+              selected_asset = json.load(response)
+
+          download_url = selected_asset.get("download_url")
+
+          if not download_url:
+              raise RuntimeError(
+                  "OpenXR plugin record has no download URL"
+              )
 
           download_request = urllib.request.Request(
               download_url,
@@ -112,10 +132,26 @@ jobs:
           ) as archive:
               archive.extractall(".")
 
-          print("Installed:", selected_asset["title"])
+          print(
+              "Installed:",
+              selected_asset.get(
+                  "title",
+                  selected_search_result.get(
+                      "title",
+                      "OpenXR Vendors"
+                  )
+              )
+          )
+
           print(
               "Version:",
-              selected_asset.get("version", "unknown")
+              selected_asset.get(
+                  "version",
+                  selected_search_result.get(
+                      "version",
+                      "unknown"
+                  )
+              )
           )
           PY
 
