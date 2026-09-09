@@ -36,6 +36,14 @@ jobs:
           mv /root/.local/share/godot/export_templates/${GODOT_VERSION}.stable \
              ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
 
+      - name: Install workflow tools
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            python3 \
+            ca-certificates \
+            unzip
+
       - name: Download compatible OpenXR Vendors plugin
         run: |
           python3 - <<'PY'
