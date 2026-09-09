@@ -91,6 +91,10 @@ jobs:
 
           test -f /tmp/thatvrkidd-debug.keystore
 
+      - name: Refresh project after Android setup
+        run: |
+          godot --headless --path . --editor --quit
+
       - name: Build Quest APK
         run: |
           mkdir -p build
