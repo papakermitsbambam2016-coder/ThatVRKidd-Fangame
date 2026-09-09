@@ -36,7 +36,57 @@ jobs:
           mv /root/.local/share/godot/export_templates/${GODOT_VERSION}.stable \
              ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
 
-      - name: Import project
+      - name: Download compatible OpenXR Vendors plugin
+        run: |
+          python3 - <<'PY'
+          import json
+          import urllib.parse
+          import urllib.request
+          import zipfile
+
+          query = urllib.parse.urlencode({
+              "filter": "Godot OpenXR Vendors",
+              "godot_version": "4.3",
+              "max_results": "20"
+          })
+
+          api_url = (
+              "https://godotengine.org/asset-library/api/asset?"
+              + query
+          )
+
+          with urllib.request.urlopen(api_url) as response:
+              data = json.load(response)
+
+          assets = data.get("result", [])
+          matches = [
+              asset for asset in assets
+              if "openxr vendors" in asset.get("title", "").lower()
+          ]
+
+          if not matches:
+              raise RuntimeError(
+                  "Compatible OpenXR Vendors plugin was not found"
+              )
+
+          download_url = matches[0]["download_url"]
+
+          urllib.request.urlretrieve(
+              download_url,
+              "/tmp/openxr-vendors.zip"
+          )
+
+          with zipfile.ZipFile(
+              "/tmp/openxr-vendors.zip",
+              "r"
+          ) as archive:
+              archive.extractall(".")
+
+          print("Installed:", matches[0]["title"])
+          print("Version:", matches[0].get("version", "unknown"))
+          PY
+
+      - name: Import Godot project
         run: |
           godot --headless --path . --editor --quit
 
