@@ -66,6 +66,7 @@ jobs:
         run: |
           godot --headless \
             --path . \
+            --editor \
             --install-android-build-template \
             --quit
 
