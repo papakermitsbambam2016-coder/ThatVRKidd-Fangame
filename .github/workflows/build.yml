@@ -68,9 +68,10 @@ jobs:
             --path . \
             --editor \
             --install-android-build-template \
-            --quit
+            --quit || true
 
           test -d android/build
+          test -f android/build/build.gradle
           find android/build -maxdepth 2 -type f | head -30
 
       - name: Build Quest APK
