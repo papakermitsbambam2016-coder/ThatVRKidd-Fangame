@@ -85,10 +85,9 @@ jobs:
             -validity 10000 \
             -dname "CN=Android Debug,O=ThatVRKidd,C=US"
 
-          sed -i '/package\/signed=true/a\
-keystore/debug="/tmp/thatvrkidd-debug.keystore"\
-keystore/debug_user="androiddebugkey"\
-keystore/debug_password="android"' export_presets.cfg
+          sed -i '/package\/signed=true/a keystore/debug="/tmp/thatvrkidd-debug.keystore"' export_presets.cfg
+          sed -i '/keystore\/debug=/a keystore/debug_user="androiddebugkey"' export_presets.cfg
+          sed -i '/keystore\/debug_user=/a keystore/debug_password="android"' export_presets.cfg
 
           test -f /tmp/thatvrkidd-debug.keystore
 
