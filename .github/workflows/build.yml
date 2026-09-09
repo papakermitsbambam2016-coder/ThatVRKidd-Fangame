@@ -45,7 +45,16 @@ jobs:
           curl --fail --location \
             "https://github.com/GodotVR/godot_openxr_vendors/releases/download/${OPENXR_VENDORS_VERSION}/godotopenxrvendorsaddon.zip" \
             --output /tmp/openxr-vendors.zip
-          unzip -q /tmp/openxr-vendors.zip -d .
+
+          mkdir -p /tmp/openxr-vendors-extracted
+          unzip -q /tmp/openxr-vendors.zip -d /tmp/openxr-vendors-extracted
+
+          PLUGIN_DIR="$(find /tmp/openxr-vendors-extracted -type d -name godotopenxrvendors | head -n 1)"
+          test -n "$PLUGIN_DIR"
+
+          mkdir -p addons
+          cp -R "$PLUGIN_DIR" addons/godotopenxrvendors
+
           test -d addons/godotopenxrvendors
           find addons/godotopenxrvendors -maxdepth 2 -type f | head -30
 
