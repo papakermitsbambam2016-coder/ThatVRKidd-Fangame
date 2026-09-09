@@ -1,6 +1,7 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://Scripts/Main.gd" id="1_main"]
+[ext_resource type="Script" path="res://Scripts/Player/GorillaPlayer.gd" id="2_player"]
 
 [sub_resource type="Environment" id="Environment_main"]
 background_mode = 1
@@ -19,6 +20,22 @@ roughness = 0.9
 [sub_resource type="BoxShape3D" id="BoxShape_floor"]
 size = Vector3(30, 0.2, 30)
 
+[sub_resource type="CapsuleShape3D" id="Capsule_player"]
+radius = 0.22
+height = 1.6
+
+[sub_resource type="SphereMesh" id="Sphere_hand"]
+radius = 0.09
+height = 0.18
+
+[sub_resource type="StandardMaterial3D" id="Material_left"]
+albedo_color = Color(0.1, 0.45, 1, 1)
+roughness = 0.65
+
+[sub_resource type="StandardMaterial3D" id="Material_right"]
+albedo_color = Color(1, 0.18, 0.12, 1)
+roughness = 0.65
+
 [node name="Main" type="Node3D"]
 script = ExtResource("1_main")
 
@@ -31,6 +48,8 @@ light_energy = 1.2
 shadow_enabled = true
 
 [node name="Floor" type="StaticBody3D" parent="."]
+collision_layer = 1
+collision_mask = 1
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
 position = Vector3(0, -0.1, 0)
@@ -41,13 +60,30 @@ material_override = SubResource("Material_floor")
 position = Vector3(0, -0.1, 0)
 shape = SubResource("BoxShape_floor")
 
-[node name="XROrigin3D" type="XROrigin3D" parent="."]
+[node name="Player" type="CharacterBody3D" parent="."]
+collision_layer = 2
+collision_mask = 1
+script = ExtResource("2_player")
 
-[node name="XRCamera3D" type="XRCamera3D" parent="XROrigin3D"]
+[node name="BodyCollider" type="CollisionShape3D" parent="Player"]
+position = Vector3(0, 0.8, 0)
+shape = SubResource("Capsule_player")
+
+[node name="XROrigin3D" type="XROrigin3D" parent="Player"]
+
+[node name="XRCamera3D" type="XRCamera3D" parent="Player/XROrigin3D"]
 current = true
 
-[node name="LeftController" type="XRController3D" parent="XROrigin3D"]
+[node name="LeftController" type="XRController3D" parent="Player/XROrigin3D"]
 tracker = &"left_hand"
 
-[node name="RightController" type="XRController3D" parent="XROrigin3D"]
+[node name="HandMesh" type="MeshInstance3D" parent="Player/XROrigin3D/LeftController"]
+mesh = SubResource("Sphere_hand")
+material_override = SubResource("Material_left")
+
+[node name="RightController" type="XRController3D" parent="Player/XROrigin3D"]
 tracker = &"right_hand"
+
+[node name="HandMesh" type="MeshInstance3D" parent="Player/XROrigin3D/RightController"]
+mesh = SubResource("Sphere_hand")
+material_override = SubResource("Material_right")
