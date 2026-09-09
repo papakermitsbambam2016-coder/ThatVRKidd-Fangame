@@ -39,6 +39,7 @@ jobs:
       - name: Install workflow tools
         run: |
           apt-get update
+
           apt-get install -y --no-install-recommends \
             python3 \
             ca-certificates \
@@ -63,10 +64,21 @@ jobs:
               + query
           )
 
-          with urllib.request.urlopen(api_url) as response:
+          headers = {
+              "User-Agent": "Mozilla/5.0 ThatVRKidd-GitHub-Actions",
+              "Accept": "application/json"
+          }
+
+          api_request = urllib.request.Request(
+              api_url,
+              headers=headers
+          )
+
+          with urllib.request.urlopen(api_request) as response:
               data = json.load(response)
 
           assets = data.get("result", [])
+
           matches = [
               asset for asset in assets
               if "openxr vendors" in asset.get("title", "").lower()
@@ -77,12 +89,22 @@ jobs:
                   "Compatible OpenXR Vendors plugin was not found"
               )
 
-          download_url = matches[0]["download_url"]
+          selected_asset = matches[0]
+          download_url = selected_asset["download_url"]
 
-          urllib.request.urlretrieve(
+          download_request = urllib.request.Request(
               download_url,
-              "/tmp/openxr-vendors.zip"
+              headers={
+                  "User-Agent": "Mozilla/5.0",
+                  "Accept": "application/octet-stream"
+              }
           )
+
+          with urllib.request.urlopen(download_request) as response:
+              plugin_data = response.read()
+
+          with open("/tmp/openxr-vendors.zip", "wb") as plugin_file:
+              plugin_file.write(plugin_data)
 
           with zipfile.ZipFile(
               "/tmp/openxr-vendors.zip",
@@ -90,13 +112,24 @@ jobs:
           ) as archive:
               archive.extractall(".")
 
-          print("Installed:", matches[0]["title"])
-          print("Version:", matches[0].get("version", "unknown"))
+          print("Installed:", selected_asset["title"])
+          print(
+              "Version:",
+              selected_asset.get("version", "unknown")
+          )
           PY
+
+      - name: Confirm OpenXR plugin files
+        run: |
+          test -d addons/godotopenxrvendors
+          find addons/godotopenxrvendors -maxdepth 2 -type f | head -30
 
       - name: Import Godot project
         run: |
-          godot --headless --path . --editor --quit
+          godot --headless \
+            --path . \
+            --editor \
+            --quit
 
       - name: Install Android Gradle template
         run: |
@@ -105,6 +138,11 @@ jobs:
             --install-android-build-template \
             --editor \
             --quit
+
+      - name: Confirm Android template
+        run: |
+          test -d android/build
+          find android/build -maxdepth 2 -type f | head -30
 
       - name: Build Quest APK
         run: |
@@ -117,7 +155,7 @@ jobs:
             --export-debug "Android" \
             build/ThatVRKidd-Fangame.apk
 
-      - name: Verify APK
+      - name: Verify Quest APK
         run: |
           test -f build/ThatVRKidd-Fangame.apk
           ls -lh build/ThatVRKidd-Fangame.apk
