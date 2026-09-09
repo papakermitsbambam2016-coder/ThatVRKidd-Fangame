@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://Scripts/Main.gd" id="1_main"]
 [ext_resource type="Script" path="res://Scripts/Player/GorillaPlayer.gd" id="2_player"]
@@ -86,4 +86,9 @@ tracker = &"right_hand"
 
 [node name="HandMesh" type="MeshInstance3D" parent="Player/XROrigin3D/RightController"]
 mesh = SubResource("Sphere_hand")
+
 material_override = SubResource("Material_right")
+[node name="ClientMenu" type="Node3D" parent="Player/XROrigin3D/LeftController"]
+position = Vector3(0, 0.22, -0.18)
+rotation_degrees = Vector3(-55, 0, 0)
+script = ExtResource("3_menu")
