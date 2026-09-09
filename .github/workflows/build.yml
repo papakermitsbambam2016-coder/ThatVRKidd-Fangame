@@ -155,8 +155,37 @@ jobs:
           )
           PY
 
-      - name: Confirm OpenXR plugin files
+      - name: Locate and install OpenXR plugin files
         run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import shutil
+
+          target = Path("addons/godotopenxrvendors")
+
+          if not target.is_dir():
+              candidates = [
+                  path
+                  for path in Path(".").rglob("godotopenxrvendors")
+                  if path.is_dir() and path != target
+              ]
+
+              if not candidates:
+                  print("Extracted directories:")
+                  for path in Path(".").iterdir():
+                      print(path)
+                  raise RuntimeError(
+                      "godotopenxrvendors directory was not found"
+                  )
+
+              source = candidates[0]
+              target.parent.mkdir(parents=True, exist_ok=True)
+              shutil.copytree(source, target, dirs_exist_ok=True)
+              print("Moved plugin from:", source)
+
+          print("Plugin installed at:", target)
+          PY
+
           test -d addons/godotopenxrvendors
           find addons/godotopenxrvendors -maxdepth 2 -type f | head -30
 
