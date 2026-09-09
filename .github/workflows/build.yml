@@ -76,10 +76,12 @@ jobs:
 
           mkdir -p android/build
           unzip -q "$ANDROID_SOURCE" -d android/build
-          printf '%s\n' "${GODOT_VERSION}.stable" > android/build/.build_version
+          printf '%s\n' "${GODOT_VERSION}.stable" > android/.build_version
+          touch android/build/.gdignore
 
           test -f android/build/build.gradle
-          test -f android/build/.build_version
+          test -f android/.build_version
+          test -f android/build/.gdignore
           find android/build -maxdepth 2 -type f | head -30
 
       - name: Create Android debug keystore
