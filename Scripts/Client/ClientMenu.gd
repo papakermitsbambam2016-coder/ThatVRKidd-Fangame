@@ -1,6 +1,6 @@
 extends Node3D
 
-enum Page { MAIN, SETTINGS }
+enum Page { MAIN, FUN, SETTINGS }
 
 @onready var player: CharacterBody3D = get_node("../../..")
 @onready var right_controller: XRController3D = get_node("../../RightController")
@@ -12,6 +12,11 @@ var mosa_enabled := false
 var speed_boost_enabled := false
 var fly_enabled := false
 var platforms_enabled := false
+var joystick_enabled := false
+var moon_gravity_enabled := false
+var grapple_enabled := false
+var rgb_trails_enabled := false
+var tag_gun_enabled := false
 var world_scale := 1.0
 var arm_multiplier := 1.0
 var title_label: Label3D
@@ -54,7 +59,7 @@ func show_main_page() -> void:
 	clear_buttons()
 	title_label.text = "ThatVRKidd Client"
 	status_label.text = "Main Menu"
-	create_button("SETTINGS", "settings", 0.19, false)
+	create_button("MORE FEATURES", "fun", 0.19, false)
 	create_button("LONG ARMS", "long_arms", 0.105, long_arms_enabled)
 	create_button("MOSA SPEED", "mosa", 0.02, mosa_enabled)
 	create_button("SPEED BOOST", "speed", -0.065, speed_boost_enabled)
@@ -72,6 +77,40 @@ func show_settings_page() -> void:
 	create_button("ARM LENGTH +", "arm_length_up", -0.065, false)
 	create_button("ARM LENGTH -", "arm_length_down", -0.15, false)
 	create_button("RESET SETTINGS", "reset", -0.235, false)
+
+func show_fun_page() -> void:
+	current_page = Page.FUN
+	clear_buttons()
+	title_label.text = "EXTRA FEATURES"
+	status_label.text = "Private rooms only"
+	create_button("BACK", "main_menu", 0.19, false)
+	create_button("JOYSTICK WALK", "joystick", 0.105, joystick_enabled)
+	create_button("MOON GRAVITY", "moon_gravity", 0.02, moon_gravity_enabled)
+	create_button("GRAPPLE HOOK", "grapple", -0.065, grapple_enabled)
+	create_button("RGB HAND TRAILS", "rgb_trails", -0.15, rgb_trails_enabled)
+	create_button("NEXT", "fun_two", -0.235, false)
+
+func show_fun_page_two() -> void:
+	current_page = Page.FUN
+	clear_buttons()
+	title_label.text = "GAME TOOLS"
+	status_label.text = "Host-authorized modes"
+	create_button("BACK", "fun", 0.19, false)
+	create_button("TAG GUN", "tag_gun", 0.105, tag_gun_enabled)
+	create_button("FREEZE SELF", "freeze", 0.02, false)
+	create_button("SOUNDBOARD TONE", "soundboard", -0.065, false)
+	create_button("SETTINGS", "settings", -0.15, false)
+	create_button("NETWORK", "network", -0.235, false)
+
+func show_network_page() -> void:
+	clear_buttons()
+	title_label.text = "MULTIPLAYER"
+	var network := get_tree().current_scene.get_node_or_null("NetworkManager")
+	var room := str(network.get("default_room")) if network != null else "OFFLINE"
+	status_label.text = "Room: %s" % room
+	create_button("BACK", "fun_two", 0.19, false)
+	create_button("JOIN PUBLIC ROOM", "join_room", 0.105, false)
+	create_button("DISCONNECT", "disconnect", 0.02, false)
 
 func create_button(text: String, action: String, y: float, enabled: bool) -> void:
 	var button := Area3D.new()
@@ -119,6 +158,19 @@ func press_pointed_button() -> void:
 func run_action(action: String) -> void:
 	match action:
 		"settings": show_settings_page()
+		"fun": show_fun_page()
+		"fun_two": show_fun_page_two()
+		"network": show_network_page()
+		"join_room":
+			var network := get_tree().current_scene.get_node_or_null("NetworkManager")
+			if network != null:
+				network.call("connect_public_room")
+			show_network_page()
+		"disconnect":
+			var network := get_tree().current_scene.get_node_or_null("NetworkManager")
+			if network != null:
+				network.call("disconnect_room")
+			show_network_page()
 		"main_menu": show_main_page()
 		"long_arms":
 			long_arms_enabled = not long_arms_enabled
@@ -140,6 +192,32 @@ func run_action(action: String) -> void:
 			platforms_enabled = not platforms_enabled
 			apply_player_settings()
 			show_main_page()
+		"joystick":
+			joystick_enabled = not joystick_enabled
+			apply_player_settings()
+			show_fun_page()
+		"moon_gravity":
+			moon_gravity_enabled = not moon_gravity_enabled
+			apply_player_settings()
+			show_fun_page()
+		"grapple":
+			grapple_enabled = not grapple_enabled
+			apply_player_settings()
+			show_fun_page()
+		"rgb_trails":
+			rgb_trails_enabled = not rgb_trails_enabled
+			apply_player_settings()
+			show_fun_page()
+		"tag_gun":
+			tag_gun_enabled = not tag_gun_enabled
+			apply_player_settings()
+			show_fun_page_two()
+		"freeze":
+			player.call("toggle_frozen")
+			show_fun_page_two()
+		"soundboard":
+			player.call("play_soundboard_tone")
+			show_fun_page_two()
 		"world_scale_up":
 			world_scale = min(world_scale + 0.1, 2.0)
 			apply_player_settings()
@@ -164,6 +242,11 @@ func run_action(action: String) -> void:
 			speed_boost_enabled = false
 			fly_enabled = false
 			platforms_enabled = false
+			joystick_enabled = false
+			moon_gravity_enabled = false
+			grapple_enabled = false
+			rgb_trails_enabled = false
+			tag_gun_enabled = false
 			apply_player_settings()
 			show_settings_page()
 
@@ -179,9 +262,9 @@ func apply_player_settings() -> void:
 	player.set("push_strength", new_push)
 	player.set("maximum_speed", new_speed)
 	player.call("set_client_settings", long_arms_enabled, arm_multiplier, fly_enabled, platforms_enabled)
+	player.call("set_extra_settings", joystick_enabled, moon_gravity_enabled, grapple_enabled, rgb_trails_enabled, tag_gun_enabled)
 	xr_origin_scale()
 
 func xr_origin_scale() -> void:
 	var origin: XROrigin3D = player.get_node("XROrigin3D")
 	origin.scale = Vector3.ONE * world_scale
-
