@@ -1,10 +1,11 @@
-[gd_scene load_steps=14 format=3]
+[gd_scene load_steps=15 format=3]
 
 [ext_resource type="Script" path="res://Scripts/Main.gd" id="1"]
 [ext_resource type="Script" path="res://Scripts/Player/GorillaPlayer.gd" id="2"]
 [ext_resource type="Script" path="res://Scripts/Client/ClientMenu.gd" id="3"]
 [ext_resource type="Script" path="res://Scripts/Client/MenuPointer.gd" id="4"]
 [ext_resource type="Script" path="res://Scripts/World/StarterMap.gd" id="5"]
+[ext_resource type="Script" path="res://Scripts/Network/NetworkManager.gd" id="6"]
 [sub_resource type="Environment" id="Env"]
 background_mode = 1
 background_color = Color(0.04, 0.08, 0.14, 1)
@@ -29,6 +30,8 @@ albedo_color = Color(1, 0.18, 0.12, 1)
 
 [node name="Main" type="Node3D"]
 script = ExtResource("1")
+[node name="NetworkManager" type="Node" parent="."]
+script = ExtResource("6")
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Env")
 [node name="Sun" type="DirectionalLight3D" parent="."]
@@ -72,4 +75,3 @@ mesh = SubResource("HandMesh")
 material_override = SubResource("RightMat")
 [node name="MenuPointer" type="Node3D" parent="Player/XROrigin3D/RightController"]
 script = ExtResource("4")
-
